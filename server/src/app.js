@@ -1,6 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -17,5 +18,7 @@ app.get('/', (_req, res) => {
         uptime: Math.floor(process.uptime()) + " seconds"
     });
 });
+
+app.use(errorHandler);
 
 export default app;
