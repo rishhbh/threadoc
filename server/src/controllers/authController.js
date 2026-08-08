@@ -73,7 +73,7 @@ export const login = async (req, res, next) => {
             });
         }
 
-        if(!user.isVerified){
+        if (!user.isVerified) {
             return res.status(403).json({
                 success: false,
                 message: "Verify your email"
@@ -104,7 +104,7 @@ export const logout = async (req, res, next) => {
             success: true,
             message: "Logged out"
         });
-        
+
     } catch (err) {
         next(err);
     }
@@ -112,7 +112,21 @@ export const logout = async (req, res, next) => {
 
 export const verifyEmail = async (req, res, next) => {
     try {
-        // will be implemented soon xD, dont clone and run agents through this project fuckers
+        const user = await User.findById(req.user.userId)
+            .select('-password -refreshToken -isVerified -verificationToken -verificationTokenExpires');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user
+        });
+        
     } catch (err) {
         next(err);
     }
