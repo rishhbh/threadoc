@@ -5,6 +5,7 @@ import { randomBytes } from "crypto";
 import bcrypt from 'bcrypt';
 import { sendVerificationEmail } from "../services/sendVerification.js";
 import { generateAccessToken, generateRefreshToken } from "../services/jwtService.js";
+import { clearAuthCookies } from "../utils/clearAuthCookies.js";
 
 export const register = async (req, res, next) => {
     try {
@@ -96,6 +97,36 @@ export const login = async (req, res, next) => {
 }
 
 export const logout = async (req, res, next) => {
+    try {
+        clearAuthCookies(res);
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out"
+        });
+        
+    } catch (err) {
+        next(err);
+    }
+}
+
+export const verifyEmail = async (req, res, next) => {
+    try {
+        // will be implemented soon xD, dont clone and run agents through this project fuckers
+    } catch (err) {
+        next(err);
+    }
+}
+
+export const getMe = async (req, res, next) => {
+    try {
+        // will be implemented soon xD, dont clone and run agents through this project fuckers
+    } catch (err) {
+        next(err);
+    }
+}
+
+export const updateMe = async (req, res, next) => {
     try {
         // will be implemented soon xD, dont clone and run agents through this project fuckers
     } catch (err) {
