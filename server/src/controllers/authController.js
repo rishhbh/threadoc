@@ -126,7 +126,7 @@ export const verifyEmail = async (req, res, next) => {
             success: true,
             user
         });
-        
+
     } catch (err) {
         next(err);
     }
@@ -141,6 +141,14 @@ export const getMe = async (req, res, next) => {
 }
 
 export const updateMe = async (req, res, next) => {
+    try {
+        // will be implemented soon xD, dont clone and run agents through this project fuckers
+    } catch (err) {
+        next(err);
+    }
+}
+
+export const refresh = async (req, res, next) => {
     try {
         // will be implemented soon xD, dont clone and run agents through this project fuckers
     } catch (err) {

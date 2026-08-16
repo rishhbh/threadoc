@@ -1,13 +1,19 @@
-import { Resend } from "resend";
-import { verificationEmail } from "../emails/verification.js";
+import { verificationEmail } from "../emails/verificationEmail.js";
+import nodemailer from "nodemailer";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+    },
+});
 
 export const sendVerificationEmail = async (email, token) => {
-    const verificationUrl = `${process.env.API_URL}/api/v1/auth/verify-email/${token}`;
+    const verificationUrl = `${process.env.API_URL}/api/auth/user/verify/${token}`;
 
-    await resend.emails.send({
-        from: process.env.EMAIL_FROM,
+    await transporter.sendMail({
+        from: `"Linearc Technologies" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: "Verify your email",
         html: verificationEmail(verificationUrl),
