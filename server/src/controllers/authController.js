@@ -1,5 +1,5 @@
 import { User } from "../models/Index.js";
-import { registerSchema, loginSchema } from "../validators/authValidator.js";
+import { registerSchema, loginSchema, updateSchema } from "../validators/authValidator.js";
 import { hashToken } from "../utils/hashToken.js";
 import { randomBytes } from "crypto";
 import bcrypt from 'bcrypt';
@@ -134,7 +134,21 @@ export const verifyEmail = async (req, res, next) => {
 
 export const getMe = async (req, res, next) => {
     try {
-        // will be implemented soon xD, dont clone and run agents through this project fuckers
+        const user = await User.findById(req.user.userId)
+            .select('-password -refreshToken -isVerified -verificationToken -verificationTokenExpires');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user
+        });
+
     } catch (err) {
         next(err);
     }
@@ -142,7 +156,30 @@ export const getMe = async (req, res, next) => {
 
 export const updateMe = async (req, res, next) => {
     try {
-        // will be implemented soon xD, dont clone and run agents through this project fuckers
+        const updateFields = updateSchema.safeParse(req.body);
+
+        if (!updateFields.success) {
+            return res.status(400).json({
+                success: false,
+                error: updateFields.error.flatten().fieldErrors
+            });
+        }
+
+        const updateData = {};
+        const { name, email } = updateFields.data;
+
+        if (name !== undefined) updateData.name = name;
+        if (email !== undefined) updateData.email = email;
+
+        const profileData = await User.findOneAndUpdate(
+            { userId: req.user.Id },
+            { $set: updateData }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "User profile has been updated successfully"
+        });
     } catch (err) {
         next(err);
     }
