@@ -1,9 +1,6 @@
 import { User } from "../models/Index.js";
 import { registerSchema, loginSchema, updateSchema } from "../validators/authValidator.js";
-import { hashToken } from "../utils/hashToken.js";
-import { randomBytes } from "crypto";
 import bcrypt from 'bcrypt';
-import { sendVerificationEmail } from "../services/sendVerification.js";
 import { generateAccessToken, generateRefreshToken } from "../services/jwtService.js";
 import { clearAuthCookies } from "../utils/clearAuthCookies.js";
 
@@ -28,23 +25,24 @@ export const register = async (req, res, next) => {
             });
         }
 
-        const salt = bcrypt.genSalt(10);
-        const hashedPassword = bcrypt.hash(password, salt);
-
-        const verificationToken = randomBytes(32).toString('hex');
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         const user = await User.create({
             name,
             email,
-            password: hashedPassword,
-            verificationToken: hashToken(verificationToken)
+            password: hashedPassword
         });
 
-        await sendVerificationEmail(user.email, verificationToken);
+        const accessToken = generateAccessToken(user, res);
+        const refreshToken = generateRefreshToken(user, res);
+
+        user.refreshToken = refreshToken;
+        await user.save();
 
         return res.status(201).json({
             success: true,
-            message: "You're registered, now verify the email"
+            message: "Registered successfully"
         });
 
     } catch (err) {
@@ -70,13 +68,6 @@ export const login = async (req, res, next) => {
             return res.status(404).json({
                 success: false,
                 message: "Invalid email or password"
-            });
-        }
-
-        if (!user.isVerified) {
-            return res.status(403).json({
-                success: false,
-                message: "Verify your email"
             });
         }
 
@@ -110,32 +101,10 @@ export const logout = async (req, res, next) => {
     }
 }
 
-export const verifyEmail = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.user.userId)
-            .select('-password -refreshToken -isVerified -verificationToken -verificationTokenExpires');
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            user
-        });
-
-    } catch (err) {
-        next(err);
-    }
-}
-
 export const getMe = async (req, res, next) => {
     try {
         const user = await User.findById(req.user.userId)
-            .select('-password -refreshToken -isVerified -verificationToken -verificationTokenExpires');
+            .select('-password -refreshToken');
 
         if (!user) {
             return res.status(404).json({
